@@ -609,8 +609,10 @@
     // ==========================================
     // RENDERING VIEWS
     // ==========================================
-    function render() {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    function render(scrollToTop = true) {
+      if (scrollToTop) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
 
       if (state.view === 'register') {
         app.innerHTML = renderHero() + renderRegistration();
@@ -770,7 +772,7 @@
           } else {
             state.answers[state.currentQuestion] = [n];
           }
-          render();
+          render(false);
         };
       });
 
