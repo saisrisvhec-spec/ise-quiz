@@ -166,9 +166,22 @@
       transition: .2s;
     }
 
-    .input-group input:focus {
+    .input-group input:focus,
+    .input-group textarea:focus {
       border-color: var(--violet);
       box-shadow: 0 0 0 4px #7c3aed20
+    }
+
+    .input-group textarea {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #e7eaf0;
+      border-radius: 14px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: .2s;
+      resize: vertical;
     }
 
     .error-msg {
@@ -592,7 +605,7 @@
     // STATE
     // ==========================================
     let state = {
-      view: 'register', // 'register', 'quiz', 'result', 'review'
+      view: 'register', // 'register', 'quiz', 'result', 'review', 'feedback'
       participant: {
         name: '',
         email: ''
@@ -626,6 +639,9 @@
       } else if (state.view === 'review') {
         app.innerHTML = renderReview();
         attachReviewListeners();
+      } else if (state.view === 'feedback') {
+        app.innerHTML = renderFeedback();
+        attachFeedbackListeners();
       }
     }
 
@@ -914,6 +930,7 @@
       <div class="result-actions" style="margin-top:25px;">
         <button class="btn btn-secondary" id="btn-view-answers">🔍 View Answers</button>
         <button class="btn btn-primary" id="btn-retake">🔄 Retake Test</button>
+        <button class="btn btn-secondary" id="btn-feedback">💬 Give Feedback</button>
       </div>
     </section>
   `;
@@ -922,6 +939,11 @@
     function attachResultListeners() {
       document.getElementById('btn-view-answers').onclick = () => {
         state.view = 'review';
+        render();
+      };
+
+      document.getElementById('btn-feedback').onclick = () => {
+        state.view = 'feedback';
         render();
       };
 
@@ -991,6 +1013,47 @@
       document.getElementById('btn-back-result').onclick = () => {
         state.view = 'result';
         render();
+      };
+    }
+
+    // 6. Feedback View
+    function renderFeedback() {
+      return `
+    <section class="card" style="max-width:900px; margin:auto; margin-top:20px;">
+      <div class="review-header">
+        <h2 style="margin:0;">Project Feedback</h2>
+        <button class="btn btn-secondary" id="btn-back-result-fb" style="padding:10px 15px;">⬅️ Back to Result</button>
+      </div>
+      <p style="color:var(--muted); font-size:14px; margin-bottom: 20px;">
+        What do you think about our project, and what can we do to improve it?
+      </p>
+      <div class="input-group">
+        <textarea id="feedback-text" rows="6" placeholder="Write your thoughts here..."></textarea>
+      </div>
+      <button class="btn btn-primary" id="btn-submit-fb" style="width: auto;">Submit Feedback</button>
+      <div id="fb-status" class="api-status"></div>
+    </section>
+  `;
+    }
+
+    function attachFeedbackListeners() {
+      document.getElementById('btn-back-result-fb').onclick = () => {
+        state.view = 'result';
+        render();
+      };
+      
+      document.getElementById('btn-submit-fb').onclick = () => {
+        const text = document.getElementById('feedback-text').value.trim();
+        const statusDiv = document.getElementById('fb-status');
+        if (!text) {
+          statusDiv.className = 'api-status error';
+          statusDiv.innerHTML = '❌ Please enter your feedback before submitting.';
+          return;
+        }
+        
+        statusDiv.className = 'api-status success';
+        statusDiv.innerHTML = '✅ Thank you for your valuable feedback!';
+        document.getElementById('feedback-text').value = '';
       };
     }
 
