@@ -598,7 +598,7 @@
       { q: "ISE-ன் adaptive logic, குழந்தையின் performance அடிப்படையில் difficulty-ஐ எப்படி கையாள்கிறது?", o: ["ஒவ்வொரு முறையும் manually reset செய்கிறது", "Real time-ல் adjust செய்கிறது", "எப்போதும் ஒரே level-ல் வைத்திருக்கிறது", "Dashboard-ஐ மட்டும் மாற்றுகிறது"], a: [1], e: "⚙️" },
       { q: "ISE-ல் core skill-building activity-ஆக குறிப்பிடப்பட்டிருப்பது எது?", o: ["Routine Planner", "Emotion Recognition", "AR/VR Training", "IEP Tracker"], a: [1], e: "😊" },
       { q: "ISE Progress Dashboard யாருக்கு குழந்தையின் progress-ஐ புரிந்துகொள்ள உதவுகிறது?", o: ["Parents மட்டும்", "Teachers மட்டும்", "Therapists மட்டும்", "Parents, teachers and therapists"], a: [3], e: "📊" },
-      { q: "ISE-ன் current accessibility features-ல் எவை உள்ளன? எல்லா சரியானவற்றையும் தேர்வு செய்யுங்கள்.", o: ["Sound on/off", "AR/VR mode", "Offline mode", "Font size adjustment"], a: [0, 3], multi: true, e: "♿" }
+      { q: "ISE-ன் current accessibility features-ல் எது உள்ளது?", o: ["Sound on/off", "AR/VR mode", "Offline mode", "Font size adjustment"], a: [0], e: "♿" }
     ];
 
     // ==========================================
@@ -1041,8 +1041,8 @@
         state.view = 'result';
         render();
       };
-      
-      document.getElementById('btn-submit-fb').onclick = () => {
+
+      document.getElementById('btn-submit-fb').onclick = async () => {
         const text = document.getElementById('feedback-text').value.trim();
         const statusDiv = document.getElementById('fb-status');
         if (!text) {
@@ -1050,10 +1050,39 @@
           statusDiv.innerHTML = '❌ Please enter your feedback before submitting.';
           return;
         }
-        
-        statusDiv.className = 'api-status success';
-        statusDiv.innerHTML = '✅ Thank you for your valuable feedback!';
-        document.getElementById('feedback-text').value = '';
+
+        statusDiv.className = 'api-status loading';
+        statusDiv.innerHTML = '<span class="loader"></span> Submitting feedback...';
+
+        try {
+          const payload = {
+            type: 'feedback',
+            name: state.participant.name,
+            email: state.participant.email,
+            feedback: text
+          };
+
+          const res = await fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers: {
+              "Content-Type": "text/plain;charset=utf-8",
+            }
+          });
+
+          const result = await res.json();
+          if (result.success) {
+            statusDiv.className = 'api-status success';
+            statusDiv.innerHTML = '✅ Thank you for your valuable feedback!';
+            document.getElementById('feedback-text').value = '';
+          } else {
+            statusDiv.className = 'api-status error';
+            statusDiv.innerHTML = '❌ Could not submit feedback. ' + (result.error || "");
+          }
+        } catch (error) {
+          statusDiv.className = 'api-status error';
+          statusDiv.innerHTML = '❌ Network error. Could not submit feedback.';
+        }
       };
     }
 
